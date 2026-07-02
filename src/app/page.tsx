@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createContact } from "@/app/actions";
 
 function isSupabaseConfigured() {
   return Boolean(
@@ -22,7 +24,17 @@ const SOURCE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export default async function ContactsPage() {
+const inputClass =
+  "w-full rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none";
+const labelClass = "text-xs font-medium text-zinc-500";
+
+export default async function ContactsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error: formError } = await searchParams;
+
   if (!isSupabaseConfigured()) {
     return (
       <main className="mx-auto flex max-w-3xl flex-1 flex-col items-start justify-center gap-3 px-6 py-24">
@@ -62,6 +74,74 @@ export default async function ContactsPage() {
         </span>
       </div>
 
+      <div className="mb-8 rounded-lg border border-zinc-200 p-4">
+        <h2 className="mb-3 text-sm font-semibold text-zinc-900">New contact</h2>
+        {formError ? (
+          <p className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {formError}
+          </p>
+        ) : null}
+        <form action={createContact} className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="full_name" className={labelClass}>
+              Name
+            </label>
+            <input
+              id="full_name"
+              name="full_name"
+              required
+              className={inputClass}
+              placeholder="Jane Smith"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="phone" className={labelClass}>
+              Phone
+            </label>
+            <input id="phone" name="phone" type="tel" className={inputClass} placeholder="(555) 555-0100" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="email" className={labelClass}>
+              Email
+            </label>
+            <input id="email" name="email" type="email" className={inputClass} placeholder="jane@example.com" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="source" className={labelClass}>
+              Source
+            </label>
+            <select id="source" name="source" defaultValue="" className={inputClass}>
+              <option value="">—</option>
+              {Object.entries(SOURCE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1 sm:col-span-2">
+            <label htmlFor="address" className={labelClass}>
+              Address
+            </label>
+            <input id="address" name="address" className={inputClass} placeholder="123 Main St" />
+          </div>
+          <div className="flex flex-col gap-1 sm:col-span-2">
+            <label htmlFor="notes" className={labelClass}>
+              Notes
+            </label>
+            <textarea id="notes" name="notes" rows={2} className={inputClass} />
+          </div>
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              className="rounded bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+            >
+              Add contact
+            </button>
+          </div>
+        </form>
+      </div>
+
       {contacts.length === 0 ? (
         <p className="rounded-lg border border-dashed border-zinc-300 px-6 py-12 text-center text-zinc-500">
           No contacts yet.
@@ -92,7 +172,9 @@ export default async function ContactsPage() {
               {contacts.map((contact) => (
                 <tr key={contact.id}>
                   <td className="px-4 py-3 text-sm font-medium text-zinc-900">
-                    {contact.full_name}
+                    <Link href={`/contacts/${contact.id}`} className="hover:underline">
+                      {contact.full_name}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-sm text-zinc-600">{contact.phone ?? "—"}</td>
                   <td className="px-4 py-3 text-sm text-zinc-600">{contact.email ?? "—"}</td>

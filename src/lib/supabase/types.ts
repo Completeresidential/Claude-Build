@@ -72,12 +72,14 @@ export type Database = {
           {
             foreignKeyName: "jobs_contact_id_fkey";
             columns: ["contact_id"];
+            isOneToOne: true;
             referencedRelation: "contacts";
             referencedColumns: ["id"];
           },
           {
             foreignKeyName: "jobs_assigned_to_fkey";
             columns: ["assigned_to"];
+            isOneToOne: true;
             referencedRelation: "users";
             referencedColumns: ["id"];
           },
