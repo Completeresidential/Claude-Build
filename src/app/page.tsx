@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createContact } from "@/app/actions";
+import { SOURCE_LABELS } from "@/lib/labels";
+import { inputClass, labelClass } from "@/lib/ui";
 
 function isSupabaseConfigured() {
   return Boolean(
@@ -15,18 +17,6 @@ function formatDate(value: string) {
     day: "numeric",
   });
 }
-
-const SOURCE_LABELS: Record<string, string> = {
-  phone: "Phone",
-  website: "Website",
-  referral: "Referral",
-  social: "Social",
-  other: "Other",
-};
-
-const inputClass =
-  "w-full rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none";
-const labelClass = "text-xs font-medium text-zinc-500";
 
 export default async function ContactsPage({
   searchParams,
