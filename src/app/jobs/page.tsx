@@ -1,21 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { JobStage } from "@/lib/supabase/types";
+import { STAGES } from "@/lib/labels";
 
 function isSupabaseConfigured() {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
 }
-
-const STAGES: { key: JobStage; label: string }[] = [
-  { key: "lead", label: "Lead" },
-  { key: "estimate_sent", label: "Estimate Sent" },
-  { key: "scheduled", label: "Scheduled" },
-  { key: "in_progress", label: "In Progress" },
-  { key: "complete", label: "Complete" },
-  { key: "lost", label: "Lost" },
-];
 
 export default async function JobsPage() {
   if (!isSupabaseConfigured()) {
@@ -72,7 +63,7 @@ export default async function JobsPage() {
                   stageJobs.map((job) => (
                     <Link
                       key={job.id}
-                      href={`/contacts/${job.contact_id}`}
+                      href={`/jobs/${job.id}`}
                       className="block rounded border border-zinc-200 bg-white px-3 py-2 hover:border-zinc-400"
                     >
                       <div className="text-sm font-medium text-zinc-900">{job.title}</div>

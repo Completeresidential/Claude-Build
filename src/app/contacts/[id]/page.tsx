@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { JobStage } from "@/lib/supabase/types";
+import { createJob } from "@/app/actions";
+import { SOURCE_LABELS, SERVICE_TYPE_LABELS, STAGE_LABELS } from "@/lib/labels";
+import { inputClass, labelClass } from "@/lib/ui";
 
 function isSupabaseConfigured() {
   return Boolean(
@@ -9,29 +11,15 @@ function isSupabaseConfigured() {
   );
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-  phone: "Phone",
-  website: "Website",
-  referral: "Referral",
-  social: "Social",
-  other: "Other",
-};
-
-const STAGE_LABELS: Record<JobStage, string> = {
-  lead: "Lead",
-  estimate_sent: "Estimate Sent",
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
-  complete: "Complete",
-  lost: "Lost",
-};
-
 export default async function ContactDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { id } = await params;
+  const { error: formError } = await searchParams;
 
   if (!isSupabaseConfigured()) {
     return (
@@ -111,6 +99,57 @@ export default async function ContactDetailPage({
 
       <h2 className="mt-10 mb-3 text-lg font-semibold text-zinc-900">Jobs</h2>
 
+      <div className="mb-6 rounded-lg border border-zinc-200 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-zinc-900">New job</h3>
+        {formError ? (
+          <p className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {formError}
+          </p>
+        ) : null}
+        <form action={createJob} className="grid gap-3 sm:grid-cols-2">
+          <input type="hidden" name="contact_id" value={contact.id} />
+          <div className="flex flex-col gap-1 sm:col-span-2">
+            <label htmlFor="title" className={labelClass}>
+              Title
+            </label>
+            <input
+              id="title"
+              name="title"
+              required
+              className={inputClass}
+              placeholder="Kitchen remodel"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="service_type" className={labelClass}>
+              Service type
+            </label>
+            <select id="service_type" name="service_type" defaultValue="" className={inputClass}>
+              <option value="">—</option>
+              {Object.entries(SERVICE_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1 sm:col-span-2">
+            <label htmlFor="scope_notes" className={labelClass}>
+              Scope notes
+            </label>
+            <textarea id="scope_notes" name="scope_notes" rows={2} className={inputClass} />
+          </div>
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              className="rounded bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+            >
+              Add job
+            </button>
+          </div>
+        </form>
+      </div>
+
       {jobsError ? (
         <p className="text-sm text-red-700">{jobsError.message}</p>
       ) : jobs.length === 0 ? (
@@ -120,11 +159,16 @@ export default async function ContactDetailPage({
       ) : (
         <ul className="divide-y divide-zinc-100 rounded-lg border border-zinc-200">
           {jobs.map((job) => (
-            <li key={job.id} className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm font-medium text-zinc-900">{job.title}</span>
-              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
-                {STAGE_LABELS[job.stage]}
-              </span>
+            <li key={job.id}>
+              <Link
+                href={`/jobs/${job.id}`}
+                className="flex items-center justify-between px-4 py-3 hover:bg-zinc-50"
+              >
+                <span className="text-sm font-medium text-zinc-900">{job.title}</span>
+                <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                  {STAGE_LABELS[job.stage]}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
